@@ -334,6 +334,23 @@ def sakura_tree() -> str:
     return f'<g class="rise" {d(.3)}>{shadow}{"".join(g)}</g>' + "".join(blossoms)
 
 
+NAME_MAX_W = 380  # espaço livre à esquerda da cerejeira (copa começa em x≈425)
+
+
+def name_layout(name: str) -> tuple[float, list[str]]:
+    """Tamanho e linhas do nome no hero: 68px numa linha se couber; senão quebra em
+    duas linhas (no espaço que equilibra melhor) e reduz a fonte até caber, no máximo 48px."""
+    if approx_w(name, 68, True) <= NAME_MAX_W:
+        return 68, [name]
+    words = name.split()
+    if len(words) < 2:
+        return NAME_MAX_W / approx_w(name, 1, True), [name]
+    splits = [(" ".join(words[:i]), " ".join(words[i:])) for i in range(1, len(words))]
+    l1, l2 = min(splits, key=lambda p: max(approx_w(p[0], 1, True), approx_w(p[1], 1, True)))
+    widest = max(approx_w(l1, 1, True), approx_w(l2, 1, True))
+    return min(48, NAME_MAX_W / widest), [l1, l2]
+
+
 def hero() -> str:
     w, h = 880, 300
     b = [card_bg(w, h), f'<defs>{seigaiha("sg")}<radialGradient id="sun"><stop offset="0" stop-color="{SHU}" stop-opacity=".35"/>'
@@ -375,14 +392,20 @@ def hero() -> str:
         b.append(f'<g class="fade" {d(.05 + i*.1)}>{g}</g>')
         x += pw + 8
     # nome revelado como uma pincelada (máscara que varre da esquerda)
+    size, lines = name_layout(CONFIG["name"])
+    if len(lines) == 1:  # layout original: nome grande numa linha
+        baselines, y_line, y_role, y_tag = [150], 166, 202, 232
+    else:  # nome longo: duas linhas, o resto desce um pouco
+        baselines, y_line, y_role, y_tag = [112, 158], 176, 208, 236
     b.append(f'<defs><linearGradient id="brush" x1="0" x2="1"><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
-             f'<mask id="nm"><rect x="30" y="80" height="90" width="0" fill="url(#brush)">'
+             f'<mask id="nm"><rect x="30" y="70" height="{y_line - 70}" width="0" fill="url(#brush)">'
              f'<animate attributeName="width" from="0" to="560" begin=".4s" dur="1.3s" fill="freeze" keySplines=".3 .7 .2 1" keyTimes="0;1" calcMode="spline"/></rect></mask></defs>')
-    b.append(f'<text x="42" y="150" mask="url(#nm)" class="s" font-size="68" letter-spacing="-1" fill="{WASHI}">{t("serif", CONFIG["name"])}</text>')
-    b.append(f'<rect x="44" y="166" width="56" height="3" fill="{SHU}" class="growx" {d(1.5)}/>')
-    b.append(f'<text x="44" y="202" class="g rise" font-size="16" fill="{MUTED}" {d(1.6)}>{t("sans", CONFIG["role"])}</text>')
+    spans = "".join(f'<tspan x="42" y="{y}">{t("serif", ln)}</tspan>' for y, ln in zip(baselines, lines))
+    b.append(f'<text mask="url(#nm)" class="s" font-size="{size:.0f}" letter-spacing="-1" fill="{WASHI}">{spans}</text>')
+    b.append(f'<rect x="44" y="{y_line}" width="56" height="3" fill="{SHU}" class="growx" {d(1.5)}/>')
+    b.append(f'<text x="44" y="{y_role}" class="g rise" font-size="16" fill="{MUTED}" {d(1.6)}>{t("sans", CONFIG["role"])}</text>')
     a, bold, c = CONFIG["tagline"]
-    b.append(f'<text x="44" y="232" font-size="16" class="rise" {d(1.75)}><tspan class="g" fill="{MUTED}">{t("sans", a)}</tspan>'
+    b.append(f'<text x="44" y="{y_tag}" font-size="16" class="rise" {d(1.75)}><tspan class="g" fill="{MUTED}">{t("sans", a)}</tspan>'
              f'<tspan class="gb" fill="{WASHI}">{t("sansb", bold)}</tspan><tspan class="g" fill="{MUTED}">{t("sans", c)}</tspan></text>')
     # prompt de terminal digitando
     user, path, cmd = CONFIG["prompt"]
