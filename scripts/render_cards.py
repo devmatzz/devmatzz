@@ -29,11 +29,11 @@ from pathlib import Path
 # ───────────────────────────── CONFIG ─────────────────────────────
 CONFIG = {
     "login": "devmatzz",  # sobrescrito por GITHUB_LOGIN ou GITHUB_REPOSITORY_OWNER
-    "name": "Matheus",
+    "name": "Matheus 'Naga' Souza",
     "role": "Analista de Suporte",
     "tagline": ("Resolvo problemas com ", "tecnologia, IA e automação", "."),
     "pills": ["Suporte · IA · Automação", "Brasil · UTC-3"],
-    "prompt": ("matheus@souza", "~", "automate --one-step-at-a-time"),
+    "prompt": ("matheus@naga", "~", "automate --one-step-at-a-time"),
     "vertical": "一歩ずつ",  # "um passo de cada vez", escrito na vertical
     "seal": "匠",  # carimbo hanko: "artesão"
     "about": [
